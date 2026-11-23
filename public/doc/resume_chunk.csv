@@ -1,0 +1,37 @@
+content
+17LIVE - 產品資料分析師（2025/02 - 2026/04）：運用 Gemini （LLM）從語音轉文字逐字稿中擷取產品功能回饋並分類以取得質性分析，以批次請求取代單筆請求，節省 50% 成本
+17LIVE - 產品資料分析師（2025/02 - 2026/04）：發現 7% 的潛在使用者可能受支付管道停用影響，提供資料以評估成本控制在多少情況下，引進新付費管道可為公司帶來收益
+17LIVE - 產品資料分析師（2025/02 - 2026/04）：透過 Superset （BI）建立 6 個直播串流功能儀表板以追蹤成效，讓產品經理能在上線後 48 小時內掌握關鍵指標
+17LIVE - 產品資料分析師（2025/02 - 2026/04）：首創動態視覺化模組，將 8 個以上維度整合於單一圖表，使儀表板複雜度降低 80%，並提升資料探索效率
+Breaktime INC. - 資料工程師（2019/04 - 2019/10）：建構自動化 ETL data pipeline，將每日 800 萬筆以上的頁面瀏覽資料從 Google Analytics 遷移至 BigQuery，並設計 Data Studio（BI）儀表板供合作夥伴監控關鍵流量 KPI
+Breaktime INC. - 資料工程師（2019/04 - 2019/10）：建置基於內容的推薦模型以個人化推送部落格文章，使點擊率（CTR）與頁面瀏覽量顯著提升 20%
+Breaktime INC. - 資料工程師（2019/04 - 2019/10）：結合 Text-CNN、邏輯迴歸與 LightGBM 的 NLP 集成模型，對部落格文章達到 91% 的分類準確率
+Breaktime INC. - 資料工程師（2019/04 - 2019/10）：針對 8 個以上不同廣告版位進行成效分析，找出優化策略以掌握合理的廣告定價
+"Epson Taiwan - 主任, 商業分析師（2021/03 - 2024/11）：建置 AWS S3 ETL 資料管線擷取列印量資料，並整合 Microsoft Teams Webhook 以進行即時資料監控與告警"
+"Epson Taiwan - 主任, 商業分析師（2021/03 - 2024/11）：建置墨水庫存的時間序列預測模型（time-series model），協助產品經理優化採購策略並減少閒置庫存"
+"Epson Taiwan - 主任, 商業分析師（2021/03 - 2024/11）：為 EDM 行銷活動打造結合 Bias SVD 與 XGBoost 的集成推薦模型，使電子郵件開信率提升 10%"
+"Epson Taiwan - 主任, 商業分析師（2021/03 - 2024/11）：設計 Salesforce 互動式 KPI 與營運儀表板以推動數據驅動決策，因此榮獲 2022 年最佳員工"
+"Epson Taiwan - 主任, 商業分析師（2021/03 - 2024/11）：開發拼貼模型（Collage Model，整合 OpenAI CLIP），可根據描述性文字輸入，利用內部資料集生成行銷素材"
+WeMo Scooter - 資料工程師（2019/12 - 2021/01）：與團隊一同使用 Apache Airflow 編排穩健的 data pipeline，確保 99% 的資料可用性
+WeMo Scooter - 資料工程師（2019/12 - 2021/01）：依據使用者在 App 上的行為開發 LSTM 預測模型以預測潛在需求區域，協助優化車隊調度，並發現 3 個潛在高需求區域
+WeMo Scooter - 資料工程師（2019/12 - 2021/01）：運用 XGBoost 對離線機車進行價值評分以優化電池交換優先順序，使服務覆蓋率提升 15%
+WeMo Scooter - 資料工程師（2019/12 - 2021/01）：設計機車閒置時間儀表板（BI）以監控車隊使用情形，協助營運團隊並促成車輛使用率提升 40%
+WeMo Scooter - 資料工程師（2019/12 - 2021/01）：與團隊一同設計資料倉儲（data warehouse）與資料集市（data mart），整合10 個以上在 PostgreSQL 的 raw data 以提供全公司資料與指標，並使用 Apache Airflow 確保 99% 的資料可用性
+Legal AI Agent（RAG、Guardrail、LLM evaluation）專案：以 Langfuse 實作 LLM 可觀測性（LLM observability），追蹤整個工作流程中的執行、檢索行為、延遲、Token 用量、推論成本與錯誤
+Legal AI Agent（RAG、Guardrail、LLM evaluation）專案：使用 LangGraph 設計多階段 AI 代理架構（multi-AI Agent），整合 GDPR guardraill、資訊充足性檢查、釐清迴圈（human-in-the-loop）、條件式 RAG 路由與答案評估
+Legal AI Agent（RAG、Guardrail、LLM evaluation）專案：使用 Qdrant 與 BAAI/bge-m3 設計 adaptive RAG routing，讓 AI 能自行判斷是否需要檢索外部內容，避免不必要的推論成本並降低延遲
+Legal AI Agent（RAG、Guardrail、LLM evaluation）專案：建置 LLM-as-a-Judge 評估流程，將生成的答案拆解為多個論述並對照檢索內容進行驗證，達到 0.8 的忠實度（faithfulness）
+Coding Agent - Dynamic Tool Creation & Self-Correction 專案：實作永續工具註冊，儲存已驗證的生成工具供日後重複使用，使 AI 的能力隨著使用次數持續增強
+Coding Agent - Dynamic Tool Creation & Self-Correction 專案：導入 5 次嘗試的後備機制（fallback）以避免無限的工具生成迴圈，多次失敗後回到由 LLM 直接推理
+Coding Agent - Dynamic Tool Creation & Self-Correction 專案：建置 autonomous coding agent，當現有工具無法解決任務時，可動態產生 Python 工具
+Coding Agent - Dynamic Tool Creation & Self-Correction 專案：設計「生成 → 執行 → 測試 → 除錯」自動化迴圈，驗證所產生的工具，並參考錯誤訊息反覆修正失敗
+"關於我（Frank, 楊孟翰）：Frank 是資料與機器學習專家，決定未來的職崖規劃要朝 Applied AI Engineer 發展。擁有 8 年以上機器學習、資料工程與分析經驗；具備使用 LangGraph、RAG 與工具呼叫（Tool Calling）實作代理式 AI 系統的實務經驗，並搭配護欄機制、LLM-as-a-Judge 評估與 Langfuse 可觀測性；以分析思維與指標導向的方法，讓 AI 系統更可靠且可評估"
+資料視覺化技能（BI）：Looker Studio、Tableau、Superset、Metabase、matplotlib、seaborn
+資料 / MLOps 技能：Apache Airflow、BigQuery、AWS S3、LLM Observability
+軟體工程技能：Python、SQL、PostgreSQL、pandas、NumPy、SciPy、FastAPI、Docker
+雲端（Cloud）技能：GCP、AWS
+AI / LLM 技能：AI Agents、LangGraph、LangChain、LLMs、RAG、Tool Calling、LLM Evaluation、Gemini、Ollama、NLP、Embeddings、Hugging Face、Qdrant、Langfuse
+機器學習（machine learning）技能：Scikit-learn、XGBoost、TensorFlow、PyTorch、推薦系統
+Github 程式作品集：https://github.com/Yangruto
+Tableau BI 作品集：https://public.tableau.com/app/profile/frankyang
+"Frank, 楊孟翰人格特質：邏輯好、具備優秀的分析能力。有責任感、善於表達，將技術背景的概念以容易了解的比喻說明給非技術背景的人聽。情緒穩定就事論事，與團隊成員有衝突或意見不合時，會先了解對方的想法後，回去查找資料再與對方討論，共同找到最合適的方案。會主動積極解決公司內部問題，喜歡學習新技能與探索新知識，用創新的方式協助公司解決問題。可以獨立作業也樂於與團隊合作共同達成目標。有時會粗心大意，但勇於面對並避免錯誤再一次的發生。做人誠信最重要。"
