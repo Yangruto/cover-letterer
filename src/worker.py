@@ -1,43 +1,38 @@
 import logging
 import os
-import uuid
-from contextlib import asynccontextmanager
-from pathlib import Path
+
+import asgi
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from workers import WorkerEntrypoint
 
 import logging_config
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
-from langchain_core.messages import AIMessage, HumanMessage
-from langfuse import get_client
-from langfuse.langchain import CallbackHandler
-from src.agent import build_agent
-from src.models import ChatRequest, ChatResponse
-
-# from workers import asgi
+from agent import run_chat
+from models import ChatRequest
 
 logger = logging.getLogger(__name__)
 
-os.environ["LANGFUSE_PUBLIC_KEY"] = os.getenv("LANGFUSE_PUBLIC_KEY")
-os.environ["LANGFUSE_SECRET_KEY"] = os.getenv("LANGFUSE_SECRET_KEY")
-os.environ["LANGFUSE_HOST"] = "https://jp.cloud.langfuse.com"
+ENV_KEYS = [
+    "CLOUDFLARE_TOKEN",
+    "Qdrant_API_KEY",
+    "GOOGLE_API_KEY",
+]
 
-langfuse = get_client()
-langfuse_handler = CallbackHandler()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    agent = build_agent()
-    app.state.agent = agent
-    yield
+_initialised = False
 
 
-app = FastAPI(
-    title="Career Match AI Agent",
-    description="Frank's Career Match AI agent",
-    lifespan=lifespan,
-)
-# Default = asgi.entrypoint(app)  # Cloudflare entrypoint
+def _init(env):
+    global _initialised
+    if _initialised:
+        return
+    for key in ENV_KEYS:
+        value = getattr(env, key, None)
+        if value is not None:
+            os.environ[key] = str(value)
+    _initialised = True
+
+
+app = FastAPI(title="Cover Letterer AI Agent", description="Frank's AI Cover Letterer")
 
 
 @app.get("/api/health")
@@ -45,30 +40,15 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/api/chat/stream", response_model=ChatResponse)
+@app.post("/api/chat/stream")
 async def chat_stream(body: ChatRequest):
-    thread_id = body.thread_id or str(uuid.uuid4())
-
-    def generate():
-        logger.debug(f"Thread ID: {thread_id}")
-        config = {
-            "configurable": {"thread_id": thread_id},
-            "callbacks": [langfuse_handler],
-        }
-
-        response = app.state.agent.stream(
-            {"messages": [HumanMessage(content=body.message)]},
-            config=config,
-            stream_mode="messages",
-        )
-        for message_chunk, metadata in response:
-            if message_chunk.content:
-                yield message_chunk.content
-
     return StreamingResponse(
-        generate(),
-        media_type="text/plain",
-        headers={
-            "X-Thread-ID": thread_id,
-        },
+        run_chat(body.message, body.history),
+        media_type="text/plain; charset=utf-8",
     )
+
+
+class Default(WorkerEntrypoint):
+    async def fetch(self, request):
+        _init(self.env)
+        return await asgi.fetch(app, request.js_object, self.env)

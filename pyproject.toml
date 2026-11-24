@@ -1,0 +1,16 @@
+[project]
+name = "cover-letterer"
+version = "0.1.0"
+description = "Frank's Career Match AI agent on Cloudflare Python Workers"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "pydantic",
+    "httpx"
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+    "workers-runtime-sdk",
+]

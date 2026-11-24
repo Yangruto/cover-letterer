@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>People Team Assistant</title>
+  <title>Frank's AI Cover-Letterer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -161,6 +161,40 @@
       color: var(--error);
     }
 
+    /* Cover letter: its own bubble, visually distinct */
+    .msg.summary {
+      max-width: 92%;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+    }
+
+    .msg.summary::before {
+      content: "Cover Letter";
+      display: block;
+      margin-bottom: 6px;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .msg a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      overflow-wrap: anywhere;
+    }
+
+    /* Centered notice, e.g. when the question limit is reached */
+    .note {
+      align-self: center;
+      text-align: center;
+      max-width: 90%;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
     .sources {
       display: flex;
       flex-wrap: wrap;
@@ -266,6 +300,11 @@
       background: var(--surface);
     }
 
+    #input:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
     #send {
       display: inline-flex;
       align-items: center;
@@ -286,7 +325,7 @@
 
     #send:disabled {
       opacity: .5;
-      cursor: default;
+      cursor: not-allowed;
     }
 
     #send svg {
@@ -337,9 +376,9 @@
   <main class="app">
     <header>
       <span class="eyebrow">Applied AI · RAG demo</span>
-      <h1>Frank AI Cover-Letterer</h1>
+      <h1>Frank's AI Cover-Letterer</h1>
       <p class="description"><strong>AI Cover Letterer</strong> 是一位熱心的 AI
-        Agent 想幫助我找到工作，他會認真的搜尋我的資料並回答您的問題。快透過發問來更認識我吧！<br>
+        Agent 想幫助我找到好工作，他會認真的搜尋我的資料並回答您的問題。快透過發問來更認識我吧！<br>
         *問完五個問題後，會自動產生一封 Cover Letter。
       </p>
     </header>
@@ -365,11 +404,16 @@
   </main>
 
   <script>
+    const MAX_QUESTIONS = 5;      // after this many questions the input is locked
+    const SEP = "\x1e";           // backend sends this before the cover letter -> new bubble
+    const SUMMARY_DELAY_MS = 3000; // pause (with loading dots) before the cover letter appears
+
     const chat = document.getElementById("chat");
     const form = document.getElementById("form");
     const input = document.getElementById("input");
     const send = document.getElementById("send");
-    const history = [];
+    const chatHistory = [];       // {role: "user" | "assistant", content}
+    let locked = false;
 
     function addMessage(role, text, extra = "") {
       const empty = document.getElementById("empty");
@@ -382,6 +426,14 @@
       return el;
     }
 
+    function addNote(text) {
+      const el = document.createElement("div");
+      el.className = "note";
+      el.textContent = text;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
     function showThinking(el) {
       el.textContent = "";
       const dots = document.createElement("span");
@@ -392,58 +444,119 @@
       el.appendChild(dots);
     }
 
-    function showSources(el, sources) {
-      if (!sources || !sources.length) return;
-      const wrap = document.createElement("div");
-      wrap.className = "sources";
-      const label = document.createElement("span");
-      label.className = "label";
-      label.textContent = "Sources";
-      wrap.appendChild(label);
-      sources.forEach((s) => {
-        const chip = document.createElement("span");
-        chip.className = "chip";
-        chip.textContent = s;
-        wrap.appendChild(chip);
-      });
-      el.appendChild(wrap);
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // ASCII-only URL characters, so a Chinese character right after a URL is not swallowed.
+    const URL_RE = /https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+/g;
+
+    // Render plain text into `el`, turning URLs into safe, clickable links.
+    function renderLinked(el, text) {
+      el.replaceChildren();
+      let last = 0;
+      for (const m of text.matchAll(URL_RE)) {
+        const url = m[0].replace(/[.,;:!?)'\]]+$/, "");   // keep trailing punctuation as text
+        if (!url) continue;
+        el.append(text.slice(last, m.index));
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = url;
+        el.append(a);
+        last = m.index + url.length;
+      }
+      el.append(text.slice(last));
+    }
+
+    function questionCount() {
+      return chatHistory.filter((m) => m.role === "user").length;
+    }
+
+    function lockChat() {
+      if (locked) return;
+      locked = true;
+      input.disabled = true;
+      send.disabled = true;
+      input.placeholder = "已完成 5 個問題，感謝您的提問！";
+      addNote(`已完成 ${MAX_QUESTIONS} 個問題。重新整理頁面即可重新開始。`);
     }
 
     async function ask(question) {
       addMessage("user", question);
-      history.push({ role: "user", content: question });
+      chatHistory.push({ role: "user", content: question });
       send.disabled = true;
-      const pending = addMessage("assistant", "");
-      showThinking(pending);
+
+      let bubble = addMessage("assistant", "");
+      showThinking(bubble);
+
+      let current = "answer";     // which bubble we are streaming into: "answer" | "summary"
+      let text = "";              // text of the current bubble
+      let answer = "";            // answer text only (this is what goes into the history)
+      let summaryStartedAt = 0;   // when the cover-letter bubble opened
+
+      const write = (part) => {
+        if (!part) return;
+        text += part;
+        if (current === "summary") renderLinked(bubble, text);   // clickable links in the cover letter
+        else bubble.textContent = text;
+        if (current === "answer") answer = text;
+        chat.scrollTop = chat.scrollHeight;
+      };
 
       try {
-        const res = await fetch("/api/chat/stream", {            // calls the FastAPI backend
+        const res = await fetch("/api/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history.slice(-6) }),
+          body: JSON.stringify({ message: question, history: chatHistory.slice(0, -1) }),
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong. Please try again.");
+        if (!res.ok) throw new Error("Something went wrong. Please try again.");
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const parts = decoder.decode(value, { stream: true }).split(SEP);
+          for (const [i, part] of parts.entries()) {
+            if (i > 0) {
+              // separator reached: the cover letter gets its own message bubble
+              current = "summary";
+              text = "";
+              bubble = addMessage("assistant", "", "summary");
+              showThinking(bubble);
+              summaryStartedAt = Date.now();
+            }
+            if (part && current === "summary") {
+              // hold the letter back until SUMMARY_DELAY_MS has passed since the bubble opened
+              const remaining = SUMMARY_DELAY_MS - (Date.now() - summaryStartedAt);
+              if (remaining > 0) await wait(remaining);
+            }
+            write(part);
+          }
         }
-        pending.textContent = data.reply;
-        showSources(pending, data.sources);
-        history.push({ role: "assistant", content: data.reply });
+
+        if (!answer) throw new Error("沒有收到回覆，請再試一次。");
+        chatHistory.push({ role: "assistant", content: answer });
       } catch (err) {
-        pending.className = "msg assistant error";
-        pending.textContent = err.message;
-        history.pop();                                    // let the person retry
+        bubble.className = "msg assistant error";
+        bubble.textContent = err.message;
+        chatHistory.pop();        // let the person retry (removes the user message)
       } finally {
-        send.disabled = false;
-        input.focus();
+        if (questionCount() >= MAX_QUESTIONS) {
+          lockChat();
+        } else {
+          send.disabled = false;
+          input.focus();
+        }
         chat.scrollTop = chat.scrollHeight;
       }
     }
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (locked || send.disabled) return;
       const q = input.value.trim();
-      if (!q || send.disabled) return;
+      if (!q) return;
       input.value = "";
       ask(q);
     });
